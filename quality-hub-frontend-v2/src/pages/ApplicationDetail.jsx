@@ -23,24 +23,20 @@ export function ApplicationDetail(){
         </div>
         <div className="badge">Updated {new Date(app.updatedAt).toLocaleString()}</div>
       </div>
-      <div className="layout" style={{marginTop:12}}>
-        <aside className="sidebar">
-          <NavLink end to={''} className={({isActive})=> 'sideLink'+(isActive?' active':'')}>Overview</NavLink>
-          <NavLink to={'features'} className={({isActive})=> 'sideLink'+(isActive?' active':'')}>Features</NavLink>
-          <NavLink to={'test-design'} className={({isActive})=> 'sideLink'+(isActive?' active':'')}>Test Design</NavLink>
-          <NavLink to={'executions'} className={({isActive})=> 'sideLink'+(isActive?' active':'')}>Executions</NavLink>
-          <NavLink to={'settings'} className={({isActive})=> 'sideLink'+(isActive?' active':'')}>Settings</NavLink>
-        </aside>
-        <main>
-          <Routes>
-            <Route index element={<DashboardTab app={app} />} />
-            <Route path="features" element={<FeaturesTab app={app} />} />
-            <Route path="test-design" element={<TestDesignTab app={app} />} />
-            <Route path="executions" element={<ExecutionsTab app={app} />} />
-            <Route path="settings" element={<SettingsTab app={app} onSaved={setApp} />} />
-          </Routes>
-        </main>
-      </div>
+      <nav className="tabs" style={{marginTop:12}}>
+        <NavLink end to={''} className={({isActive})=> 'tabLink'+(isActive?' active':'')}>Dashboard</NavLink>
+        <NavLink to={'features'} className={({isActive})=> 'tabLink'+(isActive?' active':'')}>Features</NavLink>
+        <NavLink to={'test-design'} className={({isActive})=> 'tabLink'+(isActive?' active':'')}>Test Design</NavLink>
+        <NavLink to={'executions'} className={({isActive})=> 'tabLink'+(isActive?' active':'')}>Test Execution</NavLink>
+        <NavLink to={'settings'} className={({isActive})=> 'tabLink'+(isActive?' active':'')}>Settings</NavLink>
+      </nav>
+      <Routes>
+        <Route index element={<DashboardTab app={app} />} />
+        <Route path="features" element={<FeaturesTab app={app} />} />
+        <Route path="test-design" element={<TestDesignTab app={app} />} />
+        <Route path="executions" element={<ExecutionsTab app={app} />} />
+        <Route path="settings" element={<SettingsTab app={app} onSaved={setApp} />} />
+      </Routes>
     </div>
   )
 }
