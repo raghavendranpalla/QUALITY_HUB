@@ -66,7 +66,7 @@ export default function App(){
       <Header onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<ApplicationsList />} />
-        <Route path="/apps/:id/*" element={<ApplicationDetail />} />
+        <Route path="/apps/:id/*" element={<ApplicationDetail onLogout={handleLogout} />} />
       </Routes>
       <div className="footer">© Quality Hub</div>
     </>
