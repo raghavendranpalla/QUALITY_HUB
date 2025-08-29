@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QA Test Portal — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: rgba(255,255,255,0.08);
+      --text: #e7e9ee;
+      --muted: #a7afc0;
+      --ring: rgba(255,255,255,0.15);
+
+      --ok: #16a34a;     /* green */
+      --warn: #f59e0b;   /* amber */
+      --err: #ef4444;    /* red */
+      --info: #3b82f6;   /* blue */
+
+      --kpi-1: linear-gradient(135deg, #2dd4bf 0%, #60a5fa 100%);
+      --kpi-2: linear-gradient(135deg, #f472b6 0%, #f59e0b 100%);
+      --kpi-3: linear-gradient(135deg, #fb7185 0%, #f97316 100%);
+      --kpi-4: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+      --kpi-5: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+
+      --chip-trusted-bg: rgba(22,163,74,0.15);
+      --chip-trusted-fg: #34d399;
+      --chip-stab-bg: rgba(245,158,11,0.15);
+      --chip-stab-fg: #fbbf24;
+      --chip-risk-bg: rgba(239,68,68,0.15);
+      --chip-risk-fg: #f87171;
+
+      --shadow-1: 0 10px 30px rgba(0,0,0,0.25);
+      --radius: 14px;
+    }
+
+    /* Material (light) */
+    body.theme-material {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --ring: rgba(15,23,42,0.08);
+      --shadow-1: 0 10px 20px rgba(2,6,23,0.08);
+      --chip-trusted-bg: #d1fae5;
+      --chip-trusted-fg: #065f46;
+      --chip-stab-bg: #fef3c7;
+      --chip-stab-fg: #92400e;
+      --chip-risk-bg: #fee2e2;
+      --chip-risk-fg: #991b1b;
+    }
+
+    /* Neon (dark, high-contrast) */
+    body.theme-neon {
+      --bg: #0a0b10;
+      --card: #0f1222;
+      --text: #e9f0ff;
+      --muted: #9ba3b0;
+      --ring: rgba(0,255,200,0.18);
+      --shadow-1: 0 18px 40px rgba(0,255,200,0.08);
+      --kpi-1: linear-gradient(135deg, #00ffd1 0%, #009dff 100%);
+      --kpi-2: linear-gradient(135deg, #ff54ae 0%, #ffb703 100%);
+      --kpi-3: linear-gradient(135deg, #ff5a72 0%, #ff7a00 100%);
+      --kpi-4: linear-gradient(135deg, #b388ff 0%, #00eaff 100%);
+      --kpi-5: linear-gradient(135deg, #00ff95 0%, #00a1ff 100%);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.45;
+    }
+
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .title .badge {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: var(--chip-stab-bg);
+      color: var(--chip-stab-fg);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .select, .btn {
+      background: var(--card);
+      border: 1px solid var(--ring);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-1);
+    }
+    .btn { cursor: pointer; }
+    .select:focus, .btn:focus { outline: 2px solid var(--ring); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .kpi {
+      border-radius: var(--radius);
+      padding: 14px;
+      color: white;
+      background: var(--kpi-1);
+      box-shadow: var(--shadow-1);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi .label { font-size: 12px; opacity: 0.9; }
+    .kpi .value { font-size: 26px; font-weight: 800; line-height: 1.2; margin-top: 6px; }
+    .kpi .sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+    .kpi::after {
+      content: "";
+      position: absolute; inset: -30% -30% auto auto;
+      width: 160px; height: 160px;
+      background: radial-gradient(closest-side, rgba(255,255,255,0.25), transparent);
+      filter: blur(6px);
+      transform: rotate(25deg);
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--ring);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow-1);
+    }
+
+    .card h3 { margin: 0 0 8px; font-size: 16px; }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .quality {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .col {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 12px;
+    }
+    .chip.trusted { background: var(--chip-trusted-bg); color: var(--chip-trusted-fg); }
+    .chip.stab { background: var(--chip-stab-bg); color: var(--chip-stab-fg); }
+    .chip.risk { background: var(--chip-risk-bg); color: var(--chip-risk-fg); }
+
+    .test-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px; align-items: center;
+      padding: 10px; border-radius: 12px; border: 1px dashed var(--ring);
+    }
+    .test-item .meta { font-size: 12px; color: var(--muted); }
+    .spark {
+      width: 120px; height: 26px;
+    }
+
+    .authors {
+      max-height: 560px; overflow: auto; display: flex; flex-direction: column; gap: 10px;
+    }
+    .author {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+      padding: 10px; border-radius: 12px; border: 1px solid var(--ring); background: transparent;
+    }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center; font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #22d3ee);
+      color: white;
+    }
+    .author .name { font-weight: 700; }
+    .author .small { font-size: 12px; color: var(--muted); }
+    .pill {
+      padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      background: rgba(63, 63, 70, 0.15);
+    }
+
+    .legend {
+      display: flex; gap: 12px; align-items: center;
+      font-size: 12px; color: var(--muted);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.pass { background: var(--ok); }
+    .dot.skip { background: var(--warn); }
+    .dot.fail { background: var(--err); }
+
+    .footer-note { font-size: 12px; color: var(--muted); }
+
+    /* KPI gradients per tile */
+    .kpi.k1 { background: var(--kpi-1); }
+    .kpi.k2 { background: var(--kpi-2); }
+    .kpi.k3 { background: var(--kpi-3); }
+    .kpi.k4 { background: var(--kpi-4); }
+    .kpi.k5 { background: var(--kpi-5); }
+
+    @media (max-width: 1200px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .charts { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="theme-aurora">
+  <div class="shell">
+    <header>
+      <div class="title">
+        <span>🧪 QA Test Portal — <span style="opacity:.9">Dashboard</span></span>
+        <span class="badge">Multi-theme • Live-ready</span>
+      </div>
+      <div class="controls">
+        <select id="appSelect" class="select">
+          <option value="1">Application #1</option>
+          <option value="2">Application #2</option>
+        </select>
+        <select id="rangeSelect" class="select">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30" selected>Last 30 days</option>
+        </select>
+      </div>
+      <div class="controls">
+        <select id="themeSelect" class="select" title="Theme">
+          <option value="theme-aurora" selected>🎨 Aurora</option>
+          <option value="theme-material">📐 Material</option>
+          <option value="theme-neon">🌌 Neon</option>
+        </select>
+        <button id="refreshBtn" class="btn">↻ Refresh</button>
+      </div>
+    </header>
+
+    <!-- KPI Tiles -->
+    <section class="kpis">
+      <div class="kpi k1">
+        <div class="label">Requirements</div>
+        <div id="kpiRequirements" class="value">—</div>
+        <div class="sub">From Features API</div>
+      </div>
+      <div class="kpi k2">
+        <div class="label">Total Test Cases</div>
+        <div id="kpiTests" class="value">—</div>
+        <div class="sub">All types</div>
+      </div>
+      <div class="kpi k3">
+        <div class="label">Active Bugs</div>
+        <div id="kpiBugs" class="value">—</div>
+        <div class="sub">Open/critical exceptions</div>
+      </div>
+      <div class="kpi k4">
+        <div class="label">Automated</div>
+        <div id="kpiAuto" class="value">—</div>
+        <div class="sub">Test cases</div>
+      </div>
+      <div class="kpi k5">
+        <div class="label">Manual</div>
+        <div id="kpiManual" class="value">—</div>
+        <div class="sub">Test cases</div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <main>
+        <!-- Charts -->
+        <section class="charts">
+          <div class="card">
+            <h3>Recent execution status</h3>
+            <div class="legend">
+              <span class="dot pass"></span> Pass
+              <span class="dot skip"></span> Skip
+              <span class="dot fail"></span> Fail
+            </div>
+            <canvas id="pieChart" height="140"></canvas>
+          </div>
+          <div class="card">
+            <h3>Trend — last 10 executions</h3>
+            <div class="legend">
+              <span class="dot pass"></span> Pass •
+              <span class="dot skip"></span> Skip •
+              <span class="dot fail"></span> Fail •
+              <span>— Pass %</span>
+            </div>
+            <canvas id="trendChart" height="140"></canvas>
+          </div>
+        </section>
+
+        <!-- Quality bands -->
+        <section class="quality">
+          <div class="card col">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">Trusted tests</h3>
+              <span class="chip trusted" id="trustedCount">—</span>
+            </div>
+            <div id="trustedList" class="col"></div>
+          </div>
+          <div class="card col">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">Stabilizing</h3>
+              <span class="chip stab" id="stabilizingCount">—</span>
+            </div>
+            <div id="stabilizingList" class="col"></div>
+          </div>
+          <div class="card col">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">Risk zone</h3>
+              <span class="chip risk" id="riskCount">—</span>
+            </div>
+            <div id="riskList" class="col"></div>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          Classification rule: <strong>Trusted</strong> = last 5 consecutive passes;
+          <strong>Risk</strong> = last run failed or &ge;2 fails in last 5; otherwise <strong>Stabilizing</strong>.
+        </p>
+      </main>
+
+      <!-- Right sidebar: Authors -->
+      <aside class="card">
+        <h3>Authors & contribution</h3>
+        <div class="authors" id="authorsList"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // --- Mocked demo data -----------------------------------------------------
+    // Replace via fetch() to your OpenAPI:
+    //  - GET /api/entities/Feature (requirements)
+    //  - GET /api/apps/{appId}/testcases
+    //  - GET /api/apps/{appId}/executions?since=... (if supported) else fetch all and filter by executedAt
+    //  - GET /api/entities/Exception (active bugs)
+    //  - GET /api/entities/Author (authors)
+    //
+    // For Automated vs Manual: the current schema lacks a field.
+    // Consider adding TestCase.executionType = 'AUTOMATED' | 'MANUAL' (boolean also fine).
+    // For now we attach it in mocked data as test.executionType.
+
+    const mock = (() => {
+      // 10 aggregated executions (most recent first)
+      const last10Execs = [
+        { id: 110, label: "R110", pass: 72, skip: 6, fail: 22 },
+        { id: 109, label: "R109", pass: 75, skip: 4, fail: 21 },
+        { id: 108, label: "R108", pass: 68, skip: 9, fail: 23 },
+        { id: 107, label: "R107", pass: 80, skip: 5, fail: 15 },
+        { id: 106, label: "R106", pass: 77, skip: 7, fail: 16 },
+        { id: 105, label:  "R105", pass: 74, skip: 8, fail: 18 },
+        { id: 104, label:  "R104", pass: 79, skip: 5, fail: 16 },
+        { id: 103, label:  "R103", pass: 71, skip: 6, fail: 23 },
+        { id: 102, label:  "R102", pass: 70, skip: 7, fail: 23 },
+        { id: 101, label:  "R101", pass: 66, skip: 10, fail: 24 }
+      ];
+
+      const features = new Array(48).fill(0).map((_, i) => ({ id: i+1, name: "Feature " + (i+1) }));
+
+      const authors = [
+        { id: 1, name: "Ari Banerjee", email: "ari@example.com" },
+        { id: 2, name: "Sam Lopez", email: "sam@example.com" },
+        { id: 3, name: "Mei Lin", email: "mei@example.com" },
+        { id: 4, name: "Ibrahim Khan", email: "ibrahim@example.com" },
+        { id: 5, name: "Olivia Rossi", email: "olivia@example.com" },
+        { id: 6, name: "Tom Hardy", email: "tom@example.com" }
+      ];
+
+      // 120 automated, 85 manual = 205 test cases (subset has history for demo)
+      const tests = [];
+      let id = 1;
+      function rndHistory() {
+        // produce 6-8 results with bias towards pass
+        const n = Math.floor(Math.random()*3)+6;
+        const out = [];
+        for (let i=0;i<n;i++) {
+          const r = Math.random();
+          const status = r < 0.73 ? "PASSED" : (r < 0.82 ? "SKIPPED" : "FAILED");
+          out.push({ status, executedAt: Date.now() - i*86400000 });
+        }
+        return out;
+      }
+      for (let i=0;i<205;i++) {
+        const author = authors[Math.floor(Math.random()*authors.length)];
+        const automated = i < 120;
+        tests.push({
+          id: id++,
+          title: (automated ? "AT_" : "MT_") + (1000+i),
+          featureId: Math.floor(Math.random()*features.length)+1,
+          executionType: automated ? "AUTOMATED" : "MANUAL",
+          authorId: author.id,
+          history: rndHistory()
+        });
+      }
+
+      // force some edge cases to visualize bands
+      tests[0].history = Array.from({length:7}, (_,i)=>({status:"PASSED",executedAt:Date.now()-i*86400000}));
+      tests[1].history = [
+        {status:"FAILED", executedAt: Date.now()-0*86400000},
+        {status:"FAILED", executedAt: Date.now()-1*86400000},
+        {status:"PASSED", executedAt: Date.now()-2*86400000},
+        {status:"PASSED", executedAt: Date.now()-3*86400000},
+        {status:"PASSED", executedAt: Date.now()-4*86400000},
+        {status:"PASSED", executedAt: Date.now()-5*86400000},
+      ];
+      tests[2].history = [
+        {status:"PASSED", executedAt: Date.now()-0*86400000},
+        {status:"PASSED", executedAt: Date.now()-1*86400000},
+        {status:"PASSED", executedAt: Date.now()-2*86400000},
+        {status:"PASSED", executedAt: Date.now()-3*86400000},
+        {status:"PASSED", executedAt: Date.now()-4*86400000},
+      ];
+
+      // Exceptions (bugs) — treat ERROR/CRITICAL as active
+      const exceptions = new Array(37).fill(0).map((_,i)=> ({
+        id: i+1,
+        severity: ["WARN","ERROR","CRITICAL"][Math.floor(Math.random()*3)],
+        ts: Date.now()-i*3600000
+      }));
+
+      return { last10Execs, features, tests, authors, exceptions };
+    })();
+
+    // --- Utilities ------------------------------------------------------------
+    const byId = id => document.getElementById(id);
+    function initials(name) {
+      return name.split(" ").map(p => p[0]).join("" ).slice(0,2).toUpperCase();
+    }
+    function classify(history) {
+      const last5 = history.slice(0,5); // already newest-first in our mock
+      if (last5.length >= 5 && last5.every(h => h.status === "PASSED")) return "Trusted";
+      const fails = last5.filter(h => h.status === "FAILED").length;
+      if (last5.length && (last5[0].status === "FAILED" || fails >= 2)) return "Risk";
+      return "Stabilizing";
+    }
+    function sum(arr, f) { return arr.reduce((a,x)=>a+(f?f(x):x),0); }
+
+    // --- KPI computation (from mock) -----------------------------------------
+    function computeKPIs(data) {
+      const requirements = data.features.length;
+      const totalTests = data.tests.length;
+      const automated = data.tests.filter(t => t.executionType === "AUTOMATED").length;
+      const manual = totalTests - automated;
+      const activeBugs = data.exceptions.filter(e => e.severity === "ERROR" || e.severity === "CRITICAL").length;
+      return { requirements, totalTests, activeBugs, automated, manual };
+    }
+
+    // --- Chart builders -------------------------------------------------------
+    let pieChart, trendChart;
+    function buildPie(ctx, pass, skip, fail) {
+      if (pieChart) pieChart.destroy();
+      const total = pass + skip + fail || 1;
+      pieChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Pass", "Skip", "Fail"],
+          datasets: [{
+            data: [pass, skip, fail],
+            backgroundColor: [getComputedStyle(document.body).getPropertyValue('--ok').trim(),
+                               getComputedStyle(document.body).getPropertyValue('--warn').trim(),
+                               getComputedStyle(document.body).getPropertyValue('--err').trim()],
+            hoverOffset: 6,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: "bottom", labels: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const v = ctx.parsed;
+                  const pct = (v*100/total).toFixed(1);
+                  return `${ctx.label}: ${v} (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: "60%"
+        }
+      });
+    }
+
+    function buildTrend(ctx, execs) {
+      if (trendChart) trendChart.destroy();
+      const labels = execs.map(e => e.label).reverse();
+      const pass = execs.map(e => e.pass).reverse();
+      const skip = execs.map(e => e.skip).reverse();
+      const fail = execs.map(e => e.fail).reverse();
+      const passPct = execs.map(e => {
+        const tot = e.pass + e.skip + e.fail || 1;
+        return Math.round((e.pass * 100) / tot);
+      }).reverse();
+
+      trendChart = new Chart(ctx, {
+        data: {
+          labels,
+          datasets: [
+            { type: "bar", label: "Pass", data: pass, backgroundColor: getComputedStyle(document.body).getPropertyValue('--ok').trim(), stack: "s" },
+            { type: "bar", label: "Skip", data: skip, backgroundColor: getComputedStyle(document.body).getPropertyValue('--warn').trim(), stack: "s" },
+            { type: "bar", label: "Fail", data: fail, backgroundColor: getComputedStyle(document.body).getPropertyValue('--err').trim(), stack: "s" },
+            { type: "line", label: "Pass %", data: passPct, borderColor: getComputedStyle(document.body).getPropertyValue('--info').trim(), borderWidth: 2, pointRadius: 3, yAxisID: "y1", tension: 0.25 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: "bottom", labels: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+            tooltip: { mode: "index", intersect: false }
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+            y: { stacked: true, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+            y1: { position: "right", min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim(), callback: v => v + "%" } }
+          }
+        }
+      });
+    }
+
+    // --- Quality bands UI -----------------------------------------------------
+    function renderQualityBands(tests) {
+      const buckets = { Trusted: [], Stabilizing: [], Risk: [] };
+      for (const t of tests) {
+        const cls = classify(t.history);
+        buckets[cls].push(t);
+      }
+      byId("trustedCount").textContent = buckets.Trusted.length;
+      byId("stabilizingCount").textContent = buckets.Stabilizing.length;
+      byId("riskCount").textContent = buckets.Risk.length;
+
+      function makeSparkSVG(history) {
+        const last5 = history.slice(0,5).map(h => h.status);
+        const map = { PASSED: 2, SKIPPED: 1, FAILED: 0 };
+        const points = last5.map((s,i)=> `${i*25},${30 - map[s]*12}`).join(" ");
+        const colors = { PASSED: getComputedStyle(document.body).getPropertyValue('--ok').trim(),
+                         SKIPPED: getComputedStyle(document.body).getPropertyValue('--warn').trim(),
+                         FAILED: getComputedStyle(document.body).getPropertyValue('--err').trim() };
+        const last = last5[0] || "SKIPPED";
+        return `<svg class="spark" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg">
+                  <polyline fill="none" stroke="${colors[last]}" stroke-width="2" points="${points}" />
+                </svg>`;
+      }
+
+      function renderList(elId, arr) {
+        const el = byId(elId);
+        el.innerHTML = "";
+        arr.slice(0,8).forEach(t => {
+          const last5 = t.history.slice(0,5).map(h => h.status[0]).join(" ");
+          const div = document.createElement("div");
+          div.className = "test-item";
+          div.innerHTML = `
+            <div>
+              <div style="font-weight:700">${t.title}</div>
+              <div class="meta">Author #${t.authorId} • Last5: ${last5}</div>
+            </div>
+            <div>${makeSparkSVG(t.history)}</div>
+          `;
+          el.appendChild(div);
+        });
+      }
+
+      renderList("trustedList", buckets.Trusted);
+      renderList("stabilizingList", buckets.Stabilizing);
+      renderList("riskList", buckets.Risk);
+    }
+
+    // --- Authors panel --------------------------------------------------------
+    function renderAuthors(authors, tests) {
+      const byAuthor = new Map();
+      for (const a of authors) byAuthor.set(a.id, { author: a, auto: 0, trusted: 0, total: 0 });
+      for (const t of tests) {
+        const row = byAuthor.get(t.authorId);
+        if (!row) continue;
+        row.total++;
+        if (t.executionType === "AUTOMATED") row.auto++;
+        if (classify(t.history) === "Trusted") row.trusted++;
+      }
+      const list = Array.from(byAuthor.values()).sort((a,b)=> b.auto - a.auto);
+      const box = byId("authorsList");
+      box.innerHTML = "";
+      list.forEach(({author, auto, trusted, total}) => {
+        const item = document.createElement("div");
+        item.className = "author";
+        item.innerHTML = `
+          <div class="avatar" aria-hidden="true">${initials(author.name)}</div>
+          <div>
+            <div class="name">${author.name}</div>
+            <div class="small">${author.email} • ${total} tests</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <span class="pill">⚙️ ${auto} auto</span>
+            <span class="pill">✅ ${trusted} trusted</span>
+          </div>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    // --- Main init / refresh --------------------------------------------------
+    function refresh() {
+      // In a real app, fetch data by appId & range here.
+      // Example (pseudo):
+      // const appId = byId('appSelect').value;
+      // const sinceDays = +byId('rangeSelect').value;
+      // const [feat, tc, ex, au, exec] = await Promise.all([
+      //   fetch(`/api/apps/${appId}/features`).then(r=>r.json()),
+      //   fetch(`/api/apps/${appId}/testcases`).then(r=>r.json()),
+      //   fetch(`/api/entities/Exception`).then(r=>r.json()),
+      //   fetch(`/api/entities/Author`).then(r=>r.json()),
+      //   fetch(`/api/apps/${appId}/executions`).then(r=>r.json()),
+      // ]);
+      const data = mock;
+
+      // KPIs
+      const kpis = computeKPIs(data);
+      byId("kpiRequirements").textContent = kpis.requirements.toLocaleString();
+      byId("kpiTests").textContent = kpis.totalTests.toLocaleString();
+      byId("kpiBugs").textContent = kpis.activeBugs.toLocaleString();
+      byId("kpiAuto").textContent = kpis.automated.toLocaleString();
+      byId("kpiManual").textContent = kpis.manual.toLocaleString();
+
+      // Charts
+      const pass = sum(data.last10Execs, e => e.pass);
+      const skip = sum(data.last10Execs, e => e.skip);
+      const fail = sum(data.last10Execs, e => e.fail);
+      buildPie(byId("pieChart"), pass, skip, fail);
+      buildTrend(byId("trendChart"), data.last10Execs);
+
+      // Quality bands & Authors
+      renderQualityBands(data.tests);
+      renderAuthors(data.authors, data.tests);
+    }
+
+    // Theme switching
+    byId("themeSelect").addEventListener("change", (e) => {
+      document.body.className = e.target.value;
+      // Rebuild charts to ensure colors align to theme variables
+      refresh();
+    });
+
+    byId("refreshBtn").addEventListener("click", refresh);
+
+    // Initial render
+    refresh();
+  </script>
+</body>
+</html>
