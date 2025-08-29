@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
 import { ApplicationsList } from './pages/ApplicationsList'
 import { ApplicationDetail } from './pages/ApplicationDetail'
+import { Login } from './pages/Login'
 import { api } from './api'
 
 function Logo(){ return <div className="logo" /> }
 
-function Header(){
+function Header({onLogout}){
   const [q,setQ] = useState('')
   const nav = useNavigate()
 
@@ -30,6 +31,7 @@ function Header(){
             onKeyDown={e=> e.key==='Enter' && nav(`/?q=${encodeURIComponent(q)}`)} />
         </div>
         <button className="btn" onClick={createApp}>+ New Application</button>
+        {onLogout && <button className="btn" onClick={onLogout}>Logout</button>}
       </div>
       <div className="hero">
         <div>
@@ -43,9 +45,25 @@ function Header(){
 }
 
 export default function App(){
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')) } catch { return null }
+  });
+  const handleLogin = (u) => {
+    localStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  if(!user){
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <>
-      <Header />
+      <Header onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<ApplicationsList />} />
         <Route path="/apps/:id/*" element={<ApplicationDetail />} />
