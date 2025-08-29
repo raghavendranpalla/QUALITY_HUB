@@ -10,7 +10,7 @@ function useQuery(){
 
 function Card({app}){
   return (
-    <a href="/dashboard.html" className="card cardGlow">
+    <a href={`/dashboard.html?appId=${app.id}`} className="card cardGlow">
       <div className="cardHead">
         <div className="cardTitle">{app.name}</div>
         <div className="cardSub">Version {app.version}</div>

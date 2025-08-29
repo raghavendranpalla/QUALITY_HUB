@@ -168,12 +168,13 @@
 
     .card h3 { margin: 0 0 8px; font-size: 16px; }
 
-    .charts {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 14px;
-      margin-bottom: 18px;
-    }
+      .charts {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .charts canvas { width:100% !important; height:240px !important; }
 
     .quality {
       display: grid;
@@ -318,7 +319,7 @@
               <span class="dot skip"></span> Skip
               <span class="dot fail"></span> Fail
             </div>
-            <canvas id="pieChart" height="140"></canvas>
+              <canvas id="pieChart"></canvas>
           </div>
           <div class="card">
             <h3>Trend — last 10 executions</h3>
@@ -328,7 +329,7 @@
               <span class="dot fail"></span> Fail •
               <span>— Pass %</span>
             </div>
-            <canvas id="trendChart" height="140"></canvas>
+              <canvas id="trendChart"></canvas>
           </div>
         </section>
 
@@ -384,7 +385,7 @@
     // Consider adding TestCase.executionType = 'AUTOMATED' | 'MANUAL' (boolean also fine).
     // For now we attach it in mocked data as test.executionType.
 
-    const mock = (() => {
+      const mock = (() => {
       // 10 aggregated executions (most recent first)
       const last10Execs = [
         { id: 110, label: "R110", pass: 72, skip: 6, fail: 22 },
@@ -463,13 +464,16 @@
       }));
 
       return { last10Execs, features, tests, authors, exceptions };
-    })();
+      })();
 
-    // --- Utilities ------------------------------------------------------------
-    const byId = id => document.getElementById(id);
-    function initials(name) {
-      return name.split(" ").map(p => p[0]).join("" ).slice(0,2).toUpperCase();
-    }
+      // --- Utilities ------------------------------------------------------------
+      const byId = id => document.getElementById(id);
+      const getParam = n => new URLSearchParams(window.location.search).get(n);
+      const initialAppId = getParam('appId') || '1';
+      byId('appSelect').value = initialAppId;
+      function initials(name) {
+        return name.split(" ").map(p => p[0]).join("" ).slice(0,2).toUpperCase();
+      }
     function classify(history) {
       const last5 = history.slice(0,5); // already newest-first in our mock
       if (last5.length >= 5 && last5.every(h => h.status === "PASSED")) return "Trusted";
@@ -507,9 +511,10 @@
             borderWidth: 0
           }]
         },
-        options: {
-          responsive: true,
-          plugins: {
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
             legend: { display: true, position: "bottom", labels: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
             tooltip: {
               callbacks: {
@@ -541,26 +546,27 @@
         data: {
           labels,
           datasets: [
-            { type: "bar", label: "Pass", data: pass, backgroundColor: getComputedStyle(document.body).getPropertyValue('--ok').trim(), stack: "s" },
-            { type: "bar", label: "Skip", data: skip, backgroundColor: getComputedStyle(document.body).getPropertyValue('--warn').trim(), stack: "s" },
-            { type: "bar", label: "Fail", data: fail, backgroundColor: getComputedStyle(document.body).getPropertyValue('--err').trim(), stack: "s" },
+              { type: "bar", label: "Pass", data: pass, backgroundColor: getComputedStyle(document.body).getPropertyValue('--ok').trim(), stack: "s", barPercentage:1.0, categoryPercentage:1.0 },
+              { type: "bar", label: "Skip", data: skip, backgroundColor: getComputedStyle(document.body).getPropertyValue('--warn').trim(), stack: "s", barPercentage:1.0, categoryPercentage:1.0 },
+              { type: "bar", label: "Fail", data: fail, backgroundColor: getComputedStyle(document.body).getPropertyValue('--err').trim(), stack: "s", barPercentage:1.0, categoryPercentage:1.0 },
             { type: "line", label: "Pass %", data: passPct, borderColor: getComputedStyle(document.body).getPropertyValue('--info').trim(), borderWidth: 2, pointRadius: 3, yAxisID: "y1", tension: 0.25 }
           ]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { display: true, position: "bottom", labels: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
-            tooltip: { mode: "index", intersect: false }
-          },
-          scales: {
-            x: { stacked: true, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
-            y: { stacked: true, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
-            y1: { position: "right", min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim(), callback: v => v + "%" } }
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true, position: "bottom", labels: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+              tooltip: { mode: "index", intersect: false }
+            },
+            scales: {
+              x: { stacked: true, offset: false, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+              y: { stacked: true, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim() } },
+              y1: { position: "right", min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { color: getComputedStyle(document.body).getPropertyValue('--muted').trim(), callback: v => v + "%" } }
+            }
           }
-        }
-      });
-    }
+        });
+      }
 
     // --- Quality bands UI -----------------------------------------------------
     function renderQualityBands(tests) {
@@ -641,28 +647,31 @@
       });
     }
 
-    // --- Main init / refresh --------------------------------------------------
-    function refresh() {
-      // In a real app, fetch data by appId & range here.
-      // Example (pseudo):
-      // const appId = byId('appSelect').value;
-      // const sinceDays = +byId('rangeSelect').value;
-      // const [feat, tc, ex, au, exec] = await Promise.all([
-      //   fetch(`/api/apps/${appId}/features`).then(r=>r.json()),
-      //   fetch(`/api/apps/${appId}/testcases`).then(r=>r.json()),
-      //   fetch(`/api/entities/Exception`).then(r=>r.json()),
-      //   fetch(`/api/entities/Author`).then(r=>r.json()),
-      //   fetch(`/api/apps/${appId}/executions`).then(r=>r.json()),
-      // ]);
-      const data = mock;
+      // --- Main init / refresh --------------------------------------------------
+      async function refresh() {
+        const appId = byId('appSelect').value;
+        let features = [], tests = [];
+        try {
+          const res = await Promise.all([
+            fetch(`/api/apps/${appId}/features`).then(r=>r.json()),
+            fetch(`/api/apps/${appId}/testcases`).then(r=>r.json())
+          ]);
+          features = res[0];
+          tests = res[1];
+        } catch (e) {
+          console.error('fetch failed', e);
+        }
+        const data = mock;
 
-      // KPIs
-      const kpis = computeKPIs(data);
-      byId("kpiRequirements").textContent = kpis.requirements.toLocaleString();
-      byId("kpiTests").textContent = kpis.totalTests.toLocaleString();
-      byId("kpiBugs").textContent = kpis.activeBugs.toLocaleString();
-      byId("kpiAuto").textContent = kpis.automated.toLocaleString();
-      byId("kpiManual").textContent = kpis.manual.toLocaleString();
+        // KPIs
+        const kpis = computeKPIs(data);
+        kpis.requirements = features.length;
+        kpis.totalTests = tests.length;
+        byId("kpiRequirements").textContent = kpis.requirements.toLocaleString();
+        byId("kpiTests").textContent = kpis.totalTests.toLocaleString();
+        byId("kpiBugs").textContent = kpis.activeBugs.toLocaleString();
+        byId("kpiAuto").textContent = kpis.automated.toLocaleString();
+        byId("kpiManual").textContent = kpis.manual.toLocaleString();
 
       // Charts
       const pass = sum(data.last10Execs, e => e.pass);
@@ -683,7 +692,9 @@
       refresh();
     });
 
-    byId("refreshBtn").addEventListener("click", refresh);
+      byId("refreshBtn").addEventListener("click", refresh);
+      byId("appSelect").addEventListener("change", refresh);
+      byId("rangeSelect").addEventListener("change", refresh);
 
     // Initial render
     refresh();
