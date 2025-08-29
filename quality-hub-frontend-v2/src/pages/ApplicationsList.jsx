@@ -10,7 +10,7 @@ function useQuery(){
 
 function Card({app}){
   return (
-    <div className="card cardGlow">
+    <Link to={`/apps/${app.id}`} className="card cardGlow">
       <div className="cardHead">
         <div className="cardTitle">{app.name}</div>
         <div className="cardSub">Version {app.version}</div>
@@ -28,9 +28,9 @@ function Card({app}){
           <PassRing value={app.passRate||0} />
           <div className="small">Pass Rate</div>
         </div>
-        <Link to={`/apps/${app.id}`} className="link">Open ➜</Link>
+        <div className="link">Open ➜</div>
       </div>
-    </div>
+    </Link>
   )
 }
 
