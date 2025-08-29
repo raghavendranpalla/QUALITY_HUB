@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink, Route, Routes, useParams } from 'react-router-dom'
+import { Route, Routes, useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { DashboardTab } from './tabs/Dashboard'
 import { FeaturesTab } from './tabs/Features'
@@ -13,6 +13,7 @@ import { SideNav } from '../components/SideNav'
 export function ApplicationDetail({onLogout}){
   const { id } = useParams()
   const [app, setApp] = useState(null)
+  const nav = useNavigate()
 
   useEffect(()=>{ api.getApplication(id).then(setApp) },[id])
   if(!app) return <div className="container"><div className="skeleton"/></div>
@@ -21,6 +22,7 @@ export function ApplicationDetail({onLogout}){
     <div style={{display:'flex'}}>
       <SideNav appId={id} onLogout={onLogout} />
       <div style={{flex:1}}>
+        <div className="logo qhub-home" onClick={()=>nav('/')}>QH</div>
         <div className="container">
           <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
             <div>
