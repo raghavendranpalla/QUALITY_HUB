@@ -33,7 +33,12 @@ public class SeedData {
       for(int i=0;i<5;i++){ Execution e = new Execution(); e.setApplication(b); e.setTestCase(t3); e.setStatus(r.nextBoolean()? "PASSED":"FAILED"); e.setDurationMs(900L + r.nextInt(400)); e.setExecutedAt(Instant.now().minusSeconds(4500L*(i+1))); execs.save(e); }
 
       Author au = new Author(); au.setName("QA Lead"); au.setEmail("qa.lead@example.com"); authors.save(au);
-      AppUser u = new AppUser(); u.setUsername("admin"); u.setDisplayName("Admin User"); u.setRole("ADMIN"); users.save(u);
+      AppUser u = new AppUser();
+      u.setUsername("admin");
+      u.setDisplayName("Admin User");
+      u.setRole("ADMIN");
+      u.setPassword("password");
+      users.save(u);
     };
   }
 }

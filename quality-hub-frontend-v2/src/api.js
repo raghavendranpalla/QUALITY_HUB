@@ -67,5 +67,6 @@ export const api = {
   listExecutions: (appId) => request(`/apps/${appId}/executions`),
   createExecution: (appId, payload) => request(`/apps/${appId}/executions`, { method:'POST', body: JSON.stringify(payload) }),
   activity: () => request(`/activity`),
-  schema: () => request(`/integration-endpoints/schema`)
+  schema: () => request(`/integration-endpoints/schema`),
+  login: (u,p) => request(`/auth/login`, { method:'POST', body: JSON.stringify({username:u, password:p}) })
 }

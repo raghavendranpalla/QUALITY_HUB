@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { PassRing } from '../components/PassRing'
 
@@ -10,7 +10,7 @@ function useQuery(){
 
 function Card({app}){
   return (
-    <div className="card cardGlow">
+    <a href={`/dashboard.html?appId=${app.id}`} className="card cardGlow">
       <div className="cardHead">
         <div className="cardTitle">{app.name}</div>
         <div className="cardSub">Version {app.version}</div>
@@ -28,9 +28,9 @@ function Card({app}){
           <PassRing value={app.passRate||0} />
           <div className="small">Pass Rate</div>
         </div>
-        <Link to={`/apps/${app.id}`} className="link">Open ➜</Link>
+        <div className="link">Open ➜</div>
       </div>
-    </div>
+    </a>
   )
 }
 

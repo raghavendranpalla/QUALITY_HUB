@@ -5,17 +5,24 @@ import { PassRing } from '../../components/PassRing'
 export function DashboardTab({app}){
   const [activity, setActivity] = useState([])
   const [schema, setSchema] = useState([])
+  const [counts, setCounts] = useState({requirements:0, testCases:0})
 
   useEffect(()=>{
     api.activity().then(setActivity)
     api.schema().then(setSchema)
   },[])
 
+  useEffect(()=>{
+    Promise.all([api.listFeatures(app.id), api.listTestCases(app.id)]).then(([f,t])=>{
+      setCounts({requirements:f.length, testCases:t.length})
+    })
+  },[app.id])
+
   return (
     <div className="section">
       <div className="kpi">
-        <div className="box"><div className="small">Active</div><div style={{fontSize:22,fontWeight:800}}>{app.active ? 'Yes':'No'}</div></div>
-        <div className="box"><div className="small">Test Cases</div><div style={{fontSize:22,fontWeight:800}}>{app.testCases}</div></div>
+        <div className="box"><div className="small">Requirements</div><div style={{fontSize:22,fontWeight:800}}>{counts.requirements}</div></div>
+        <div className="box"><div className="small">Test Cases</div><div style={{fontSize:22,fontWeight:800}}>{counts.testCases}</div></div>
         <div className="box"><div className="small">Executions</div><div style={{fontSize:22,fontWeight:800}}>{app.executions}</div></div>
         <div className="box" style={{display:'flex',alignItems:'center',gap:10}}>
           <PassRing value={app.passRate} /><div><div className="small">Pass Rate</div><div style={{fontSize:18,fontWeight:800}}>{app.passRate}%</div></div>
