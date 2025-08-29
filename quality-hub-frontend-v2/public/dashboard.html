@@ -244,6 +244,54 @@
     .kpi.k4 { background: var(--kpi-4); }
     .kpi.k5 { background: var(--kpi-5); }
 
+    /* --- Sidebar --------------------------------------------------------- */
+    .nav-toggle {
+      position: fixed;
+      top: 14px; left: 14px;
+      z-index: 1000;
+      background: var(--card);
+      border: 1px solid var(--ring);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: -220px;
+      width: 200px; height: 100vh;
+      background: var(--card);
+      border-right: 1px solid var(--ring);
+      box-shadow: var(--shadow-1);
+      padding: 60px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: left 0.25s ease;
+      z-index: 999;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .nav-item {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--ring);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      box-shadow: var(--shadow-1);
+    }
+
+    .nav-item:hover { background: var(--kpi-1); color: #fff; }
+
+    /* Authors panel transparent */
+    .authors-panel { background: transparent; border: none; box-shadow: none; }
+
     @media (max-width: 1200px) {
       .kpis { grid-template-columns: repeat(2, 1fr); }
       .charts { grid-template-columns: 1fr; }
@@ -252,6 +300,14 @@
   </style>
 </head>
 <body class="theme-aurora">
+  <button id="navToggle" class="nav-toggle">☰</button>
+  <nav id="sidebar" class="sidebar">
+    <a href="#" class="nav-item">Requirements</a>
+    <a href="#" class="nav-item">Test Design</a>
+    <a href="#" class="nav-item">Test Executions</a>
+    <a href="#authorsList" class="nav-item">Authors</a>
+    <a href="#" class="nav-item">Settings</a>
+  </nav>
   <div class="shell">
     <header>
       <div class="title">
@@ -365,7 +421,7 @@
       </main>
 
       <!-- Right sidebar: Authors -->
-      <aside class="card">
+      <aside class="card authors-panel">
         <h3>Authors & contribution</h3>
         <div class="authors" id="authorsList"></div>
       </aside>
@@ -665,8 +721,6 @@
 
         // KPIs
         const kpis = computeKPIs(data);
-        kpis.requirements = features.length;
-        kpis.totalTests = tests.length;
         byId("kpiRequirements").textContent = kpis.requirements.toLocaleString();
         byId("kpiTests").textContent = kpis.totalTests.toLocaleString();
         byId("kpiBugs").textContent = kpis.activeBugs.toLocaleString();
@@ -691,10 +745,17 @@
       // Rebuild charts to ensure colors align to theme variables
       refresh();
     });
+    byId("refreshBtn").addEventListener("click", refresh);
+    byId("appSelect").addEventListener("change", refresh);
+    byId("rangeSelect").addEventListener("change", refresh);
 
-      byId("refreshBtn").addEventListener("click", refresh);
-      byId("appSelect").addEventListener("change", refresh);
-      byId("rangeSelect").addEventListener("change", refresh);
+    // Sidebar toggle
+    document.getElementById('navToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+    document.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+    }));
 
     // Initial render
     refresh();
