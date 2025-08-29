@@ -467,6 +467,8 @@
         { id: 6, name: "Tom Hardy", email: "tom@example.com" }
       ];
 
+      const bugs = 7; // placeholder for Jira integration
+
       // 120 automated, 85 manual = 205 test cases (subset has history for demo)
       const tests = [];
       let id = 1;
@@ -519,8 +521,8 @@
         ts: Date.now()-i*3600000
       }));
 
-      return { last10Execs, features, tests, authors, exceptions };
-      })();
+      return { last10Execs, features, tests, authors, exceptions, bugs };
+    })();
 
       // --- Utilities ------------------------------------------------------------
       const byId = id => document.getElementById(id);
@@ -545,7 +547,7 @@
       const totalTests = data.tests.length;
       const automated = data.tests.filter(t => t.executionType === "AUTOMATED").length;
       const manual = totalTests - automated;
-      const activeBugs = data.exceptions.filter(e => e.severity === "ERROR" || e.severity === "CRITICAL").length;
+      const activeBugs = data.bugs ?? (data.exceptions ? data.exceptions.filter(e => e.severity === "ERROR" || e.severity === "CRITICAL").length : 0);
       return { requirements, totalTests, activeBugs, automated, manual };
     }
 

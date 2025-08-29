@@ -7,6 +7,7 @@ import { TestDesignTab } from './tabs/TestDesign'
 import { ExecutionsTab } from './tabs/Executions'
 import { SettingsTab } from './tabs/Settings'
 import { AuthorsTab } from './tabs/Authors'
+import { BugsTab } from './tabs/Bugs'
 import { SideNav } from '../components/SideNav'
 
 export function ApplicationDetail({onLogout}){
@@ -34,6 +35,7 @@ export function ApplicationDetail({onLogout}){
               <Route path="features" element={<FeaturesTab app={app} />} />
               <Route path="test-design" element={<TestDesignTab app={app} />} />
               <Route path="executions" element={<ExecutionsTab app={app} />} />
+              <Route path="bugs" element={<BugsTab app={app} />} />
               <Route path="authors" element={<AuthorsTab app={app} />} />
               <Route path="settings" element={<SettingsTab app={app} onSaved={setApp} />} />
             </Routes>
